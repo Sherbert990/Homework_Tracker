@@ -1,0 +1,41 @@
+{
+  "version": "7",
+  "dialect": "mysql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1777236869293,
+      "tag": "0000_cute_the_captain",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1777236952261,
+      "tag": "0001_massive_harrier",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1777240077390,
+      "tag": "0002_regular_gauntlet",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1777780602973,
+      "tag": "0003_mean_pandemic",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1777785092378,
+      "tag": "0004_dusty_moondragon",
+      "breakpoints": true
+    }
+  ]
+}
