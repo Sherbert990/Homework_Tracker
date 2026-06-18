@@ -1,9 +1,11 @@
+import { TRPCError } from "@trpc/server";
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
 import { getReminderSettings, upsertReminderSettings, getRecentActivity } from "./db";
 import { getAllEntries, getEntryByDate, upsertEntry, deleteEntry, seedEntries } from "./hwData";
+import { getLatestBackupRun, runDailyBackup, hasBackupConfig } from "./backup";
 import { z } from "zod";
 
 const ReminderSettingsInput = z.object({
@@ -87,6 +89,35 @@ export const appRouter = router({
     /** Get recent system activity log entries (OneDrive sync, reminders) */
     recent: publicProcedure.query(async () => {
       return getRecentActivity(50);
+    }),
+  }),
+
+  backup: router({
+    /** Whether OneDrive backup credentials are configured on the server. */
+    configured: publicProcedure.query(() => ({ configured: hasBackupConfig() })),
+
+    /** Latest backup run (for the Settings status card). */
+    latest: publicProcedure.query(async () => {
+      return getLatestBackupRun();
+    }),
+
+    /** Manually trigger a backup now. Returns the run result. */
+    runNow: publicProcedure.mutation(async () => {
+      if (!hasBackupConfig()) {
+        throw new TRPCError({ code: "PRECONDITION_FAILED", message: "OneDrive backup is not configured" });
+      }
+      try {
+        const result = await runDailyBackup("manual");
+        if (result.status === "failed") {
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: result.errorMessage ?? "Backup failed" });
+        }
+        return result;
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        const message = error instanceof Error ? error.message : String(error);
+        const code = /already running/i.test(message) ? "CONFLICT" : "INTERNAL_SERVER_ERROR";
+        throw new TRPCError({ code, message });
+      }
     }),
   }),
 

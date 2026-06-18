@@ -1,4 +1,4 @@
-import { boolean, int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import { bigint, boolean, int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -104,3 +104,24 @@ export const homeworkEntries = mysqlTable("homework_entries", {
 
 export type HomeworkEntryRow = typeof homeworkEntries.$inferSelect;
 export type InsertHomeworkEntry = typeof homeworkEntries.$inferInsert;
+
+/**
+ * Backup runs — audit trail for the daily OneDrive backup (DB dump + Excel).
+ * One row per backup attempt; lets the Settings page show last-backup status.
+ */
+export const backupRuns = mysqlTable("backup_runs", {
+  id: int("id").autoincrement().primaryKey(),
+  /** Epoch ms when the run started */
+  startedAt: bigint("startedAt", { mode: "number" }).notNull(),
+  /** Epoch ms when the run finished (null while running) */
+  finishedAt: bigint("finishedAt", { mode: "number" }),
+  status: mysqlEnum("status", ["running", "success", "failed"]).notNull().default("running"),
+  /** "cron" | "manual" | "internal" */
+  triggeredBy: varchar("triggeredBy", { length: 32 }).notNull(),
+  /** JSON array of uploaded OneDrive file paths */
+  uploadedFiles: text("uploadedFiles"),
+  errorMessage: text("errorMessage"),
+});
+
+export type BackupRunRow = typeof backupRuns.$inferSelect;
+export type InsertBackupRun = typeof backupRuns.$inferInsert;

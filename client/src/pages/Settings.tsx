@@ -54,30 +54,6 @@ export default function Settings() {
   const [weightsSaved, setWeightsSaved] = useState(false);
   const [reminderSaved, setReminderSaved] = useState(false);
   const [testSending, setTestSending] = useState(false);
-  // OneDrive sync state
-  const [oneDriveUrl, setOneDriveUrl] = useState(() => localStorage.getItem('onedrive_sync_url') ?? '');
-  const [oneDriveSaved, setOneDriveSaved] = useState(false);
-  const [oneDriveSyncing, setOneDriveSyncing] = useState(false);
-  const [oneDriveStatus, setOneDriveStatus] = useState<{ connected: boolean; sharingUrl?: string } | null>(null);
-
-  // Check OneDrive connection status on mount and after OAuth redirect
-  useEffect(() => {
-    fetch('/api/onedrive/status', { credentials: 'include' })
-      .then(r => r.json())
-      .then(d => setOneDriveStatus(d))
-      .catch(() => setOneDriveStatus({ connected: false }));
-
-    // Check for OAuth redirect result
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('onedrive_connected') === '1') {
-      toast.success('✅ OneDrive connected successfully!');
-      window.history.replaceState({}, '', '/settings');
-      setOneDriveStatus(prev => ({ ...prev, connected: true }));
-    } else if (params.get('onedrive_error')) {
-      toast.error(`❌ OneDrive error: ${params.get('onedrive_error')}`);
-      window.history.replaceState({}, '', '/settings');
-    }
-  }, []);
 
   // tRPC: load reminder settings from backend (if logged in)
   const { data: backendReminder } = trpc.reminder.get.useQuery(undefined, {
@@ -88,6 +64,23 @@ export default function Settings() {
   // Activity log
   const { data: activityData, isLoading: activityLoading } = trpc.activity.recent.useQuery(undefined, { retry: false });
   const activityUtils = trpc.useUtils().activity;
+
+  // OneDrive backup status + manual trigger
+  const { data: backupConfigured } = trpc.backup.configured.useQuery(undefined, { retry: false });
+  const { data: lastBackup, isLoading: backupLoading } = trpc.backup.latest.useQuery(undefined, { retry: false });
+  const backupUtils = trpc.useUtils().backup;
+  const runBackupMutation = trpc.backup.runNow.useMutation();
+
+  async function handleRunBackup() {
+    try {
+      const result = await runBackupMutation.mutateAsync();
+      toast.success(`☁️ Backup complete — ${result.uploadedFiles.length} file(s) uploaded to OneDrive!`);
+      backupUtils.latest.invalidate();
+    } catch (e: any) {
+      toast.error(`❌ Backup failed: ${e?.message ?? 'Unknown error'}`);
+      backupUtils.latest.invalidate();
+    }
+  }
 
   useEffect(() => {
     setWeights(loadWeights());
@@ -191,95 +184,6 @@ export default function Settings() {
       toast.error(`❌ Network error: ${e?.message ?? 'Could not reach server'}`);
     } finally {
       setTestSending(false);
-    }
-  }
-
-  async function handleSaveOneDrive() {
-    localStorage.setItem('onedrive_sync_url', oneDriveUrl);
-    // Also save to backend
-    try {
-      await fetch('/api/onedrive/save-url', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ url: oneDriveUrl }),
-      });
-    } catch { /* ignore */ }
-    setOneDriveSaved(true);
-    toast.success('☁️ OneDrive file URL saved!');
-    setTimeout(() => setOneDriveSaved(false), 2500);
-  }
-
-  function handleConnectOneDrive() {
-    // Redirect to the OAuth authorization flow
-    window.location.href = '/api/onedrive/auth';
-  }
-
-  async function handleSyncNow() {
-    if (!oneDriveUrl.trim()) {
-      toast.error('Please enter your OneDrive sharing URL first.');
-      return;
-    }
-    if (!oneDriveStatus?.connected) {
-      toast.error('Please connect your OneDrive account first by clicking "Connect OneDrive".');
-      return;
-    }
-    setOneDriveSyncing(true);
-    try {
-      const resp = await fetch('/api/onedrive/sync', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ url: oneDriveUrl }),
-      });
-      const data = await resp.json();
-      if (data.success) {
-        toast.success(`✅ Synced ${data.rows ?? 'all'} rows to OneDrive!`);
-        // Log success to activity log
-        await fetch('/api/log-activity', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({
-            type: 'onedrive_sync',
-            status: 'success',
-            message: `Manual sync: ${data.rows ?? 'all'} rows written to OneDrive Excel`,
-          }),
-        });
-        activityUtils.invalidate();
-      } else if (data.needsAuth) {
-        toast.error('Please connect your OneDrive account first.');
-      } else {
-        toast.error(`❌ Sync failed: ${data.error ?? 'Unknown error'}`);
-        // Log failure to activity log
-        await fetch('/api/log-activity', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({
-            type: 'onedrive_sync',
-            status: 'error',
-            message: `Manual sync failed: ${data.error ?? 'Unknown error'}`,
-          }),
-        });
-        activityUtils.invalidate();
-      }
-    } catch (e: any) {
-      toast.error(`❌ Sync error: ${e?.message}`);
-      // Log error to activity log
-      await fetch('/api/log-activity', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          type: 'onedrive_sync',
-          status: 'error',
-          message: `Manual sync error: ${e?.message ?? 'Unknown'}`,
-        }),
-      }).catch(() => {});
-      activityUtils.invalidate();
-    } finally {
-      setOneDriveSyncing(false);
     }
   }
 
@@ -638,7 +542,7 @@ export default function Settings() {
           </div>
         </motion.div>
 
-        {/* ── Section 4: OneDrive Sync ── */}
+        {/* ── Section 4: OneDrive Backup ── */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -647,134 +551,89 @@ export default function Settings() {
         >
           <div className="flex items-center justify-between mb-1">
             <h2 className="font-display font-bold text-base" style={{ color: '#3d3580' }}>
-              ☁️ OneDrive Excel Sync
+              ☁️ OneDrive Backup
             </h2>
-            {/* Connection status badge */}
             <span className="px-3 py-1 rounded-full text-xs font-bold font-display" style={{
-              background: oneDriveStatus?.connected
-                ? 'rgba(181,234,215,0.3)'
-                : 'rgba(255,200,100,0.2)',
-              color: oneDriveStatus?.connected ? '#1a5c3a' : '#7a5000',
-              border: oneDriveStatus?.connected
-                ? '1px solid rgba(142,223,192,0.4)'
-                : '1px solid rgba(255,200,100,0.4)',
+              background: backupConfigured?.configured ? 'rgba(181,234,215,0.3)' : 'rgba(255,200,100,0.2)',
+              color: backupConfigured?.configured ? '#1a5c3a' : '#7a5000',
+              border: backupConfigured?.configured ? '1px solid rgba(142,223,192,0.4)' : '1px solid rgba(255,200,100,0.4)',
             }}>
-              {oneDriveStatus === null ? '⏳ Checking…' :
-               oneDriveStatus.connected ? '🟢 Connected' : '🔴 Not Connected'}
+              {backupConfigured === undefined ? '⏳ Checking…' :
+               backupConfigured.configured ? '🟢 Active' : '🟡 Not configured'}
             </span>
           </div>
           <p className="font-body text-xs mb-4" style={{ color: '#8b83c5' }}>
-            Sync your homework history directly to a OneDrive Excel file.
-            Step 1: Paste the sharing URL. Step 2: Connect your Microsoft account. Step 3: Sync!
+            Every night at 1:00 AM (PT), a full database backup and an Excel workbook are
+            uploaded automatically to your OneDrive backup folder. You can also back up on demand below.
           </p>
 
-          <div className="space-y-3">
-            {/* Step 1: Sharing URL */}
-            <div>
-              <label className="font-display font-bold text-xs block mb-1.5" style={{ color: '#3d3580' }}>
-                Step 1 — 🔗 OneDrive Excel Sharing URL
-              </label>
-              <input
-                type="url"
-                value={oneDriveUrl}
-                placeholder="https://1drv.ms/x/c/..."
-                onChange={e => setOneDriveUrl(e.target.value)}
-                className="w-full rounded-xl px-4 py-2 font-body text-sm border-0 outline-none"
-                style={{
-                  background: 'rgba(147,141,219,0.1)',
-                  color: '#3d3580',
-                  border: '1.5px solid rgba(147,141,219,0.3)',
-                }}
-              />
-              <p className="font-body text-xs mt-1.5" style={{ color: '#8b83c5' }}>
-                In OneDrive, open the file → Share → Copy Link → paste here.
-              </p>
-              <button onClick={handleSaveOneDrive} className="btn-periwinkle mt-2 text-sm">
-                {oneDriveSaved ? '✅ URL Saved!' : '💾 Save URL'}
-              </button>
-            </div>
-
-            {/* Step 2: Connect Microsoft account */}
-            <div>
-              <label className="font-display font-bold text-xs block mb-1.5" style={{ color: '#3d3580' }}>
-                Step 2 — 🔐 Connect Microsoft Account
-              </label>
-              {oneDriveStatus?.connected ? (
-                <div className="flex items-center gap-3">
-                  <div className="p-3 rounded-xl flex-1 text-xs font-body" style={{
-                    background: 'rgba(181,234,215,0.15)',
-                    border: '1px solid rgba(142,223,192,0.3)',
-                    color: '#1a5c3a',
-                  }}>
-                    ✅ Your Microsoft account is connected. The app can sync to OneDrive automatically.
-                  </div>
-                  <button
-                    onClick={handleConnectOneDrive}
-                    className="px-3 py-2 rounded-xl text-xs font-bold font-display"
-                    style={{
-                      background: 'rgba(147,141,219,0.12)',
-                      color: '#5a5490',
-                      border: '1px solid rgba(147,141,219,0.25)',
-                    }}
-                  >
-                    🔄 Reconnect
-                  </button>
-                </div>
-              ) : (
-                <button
-                  onClick={handleConnectOneDrive}
-                  className="w-full py-3 rounded-2xl text-sm font-bold font-display transition-all"
-                  style={{
-                    background: 'linear-gradient(135deg, #0078D4, #106EBE)',
-                    color: 'white',
-                    border: 'none',
-                    boxShadow: '0 3px 12px rgba(0,120,212,0.3)',
-                  }}
-                >
-                  🔐 Connect Microsoft / OneDrive Account
-                </button>
-              )}
-            </div>
-
-            {/* Step 3: Sync */}
-            <div>
-              <label className="font-display font-bold text-xs block mb-1.5" style={{ color: '#3d3580' }}>
-                Step 3 — 🔄 Sync Data
-              </label>
-              <button
-                onClick={handleSyncNow}
-                disabled={oneDriveSyncing || !oneDriveStatus?.connected}
-                className="w-full py-3 rounded-2xl text-sm font-bold font-display transition-all"
-                style={{
-                  background: !oneDriveStatus?.connected || oneDriveSyncing
-                    ? 'rgba(147,141,219,0.15)'
-                    : 'linear-gradient(135deg, #A8D8F9, #6bbfe8)',
-                  color: !oneDriveStatus?.connected || oneDriveSyncing ? '#8b83c5' : '#1a3a5c',
-                  border: '1.5px solid rgba(107,191,232,0.3)',
-                  cursor: !oneDriveStatus?.connected || oneDriveSyncing ? 'not-allowed' : 'pointer',
-                }}
-              >
-                {oneDriveSyncing ? '⏳ Syncing to OneDrive…' :
-                 !oneDriveStatus?.connected ? '🔒 Connect account first' :
-                 '🔄 Sync Now — Push All Data to OneDrive'}
-              </button>
-              <p className="font-body text-xs mt-1.5" style={{ color: '#8b83c5' }}>
-                This will write all {1018} homework entries and spending history to your OneDrive Excel file.
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-3 p-3 rounded-xl text-xs font-body" style={{
-            background: 'rgba(0,120,212,0.06)',
-            border: '1px solid rgba(0,120,212,0.2)',
-            color: '#1a3a5c',
+          {/* Last backup status */}
+          <div className="p-4 rounded-xl mb-3" style={{
+            background: 'rgba(147,141,219,0.06)',
+            border: '1.5px solid rgba(147,141,219,0.15)',
           }}>
-            🔐 <strong>Privacy:</strong> The app only requests <code style={{ background: 'rgba(0,120,212,0.1)', padding: '1px 4px', borderRadius: 4 }}>Files.ReadWrite</code> permission
-            to read and write the specific Excel file. Your other OneDrive files are not accessible.
-            You can revoke access anytime from your{' '}
-            <a href="https://account.microsoft.com/privacy/app-access" target="_blank" rel="noopener noreferrer"
-              style={{ color: '#0078D4', textDecoration: 'underline' }}>Microsoft account settings</a>.
+            <div className="font-display font-bold text-xs mb-2" style={{ color: '#3d3580' }}>
+              📋 Last Backup
+            </div>
+            {backupLoading ? (
+              <div className="font-body text-sm" style={{ color: '#8b83c5' }}>Loading…</div>
+            ) : !lastBackup ? (
+              <div className="font-body text-sm" style={{ color: '#8b83c5' }}>
+                🐱 No backup has run yet. Tap “Back Up Now” to create the first one.
+              </div>
+            ) : (
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-xs px-2 py-0.5 rounded-full font-body font-semibold" style={{
+                    background: lastBackup.status === 'success' ? '#d1fae5' : lastBackup.status === 'failed' ? '#fee2e2' : '#fef9c3',
+                    color: lastBackup.status === 'success' ? '#065f46' : lastBackup.status === 'failed' ? '#991b1b' : '#854d0e',
+                  }}>
+                    {lastBackup.status === 'success' ? '✓ Success' : lastBackup.status === 'failed' ? '✗ Failed' : '⏳ Running'}
+                  </span>
+                  <span className="text-xs font-body" style={{ color: '#6b63b5' }}>
+                    {new Date(lastBackup.finishedAt ?? lastBackup.startedAt).toLocaleString()}
+                  </span>
+                  <span className="text-xs font-body px-1.5 py-0.5 rounded-full" style={{ background: '#ede9fe', color: '#6b63b5' }}>
+                    {lastBackup.triggeredBy === 'manual' ? 'manual' : lastBackup.triggeredBy === 'cron' ? 'scheduled' : lastBackup.triggeredBy}
+                  </span>
+                </div>
+                {lastBackup.status === 'success' && lastBackup.uploadedFiles.length > 0 && (
+                  <ul className="text-xs font-body mt-1" style={{ color: '#8b83c5' }}>
+                    {lastBackup.uploadedFiles.map((f, i) => (
+                      <li key={i} className="truncate">📄 {f.split('/').pop()}</li>
+                    ))}
+                  </ul>
+                )}
+                {lastBackup.status === 'failed' && lastBackup.errorMessage && (
+                  <p className="text-xs font-body mt-1" style={{ color: '#991b1b' }}>
+                    {lastBackup.errorMessage}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
+
+          {/* Manual backup button */}
+          <button
+            onClick={handleRunBackup}
+            disabled={runBackupMutation.isPending || backupConfigured?.configured === false}
+            className="w-full py-3 rounded-2xl text-sm font-bold font-display transition-all"
+            style={{
+              background: runBackupMutation.isPending || backupConfigured?.configured === false
+                ? 'rgba(147,141,219,0.15)'
+                : 'linear-gradient(135deg, #A8D8F9, #6bbfe8)',
+              color: runBackupMutation.isPending || backupConfigured?.configured === false ? '#8b83c5' : '#1a3a5c',
+              border: '1.5px solid rgba(107,191,232,0.3)',
+              cursor: runBackupMutation.isPending || backupConfigured?.configured === false ? 'not-allowed' : 'pointer',
+            }}
+          >
+            {runBackupMutation.isPending ? '⏳ Backing up to OneDrive…' :
+             backupConfigured?.configured === false ? '🔒 Backup not configured' :
+             '☁️ Back Up Now'}
+          </button>
+          <p className="font-body text-xs mt-2" style={{ color: '#8b83c5' }}>
+            Backs up a full database dump plus an Excel workbook of all homework entries and spending history.
+          </p>
         </motion.div>
 
         {/* ── Section 5: Recent Activity ── */}

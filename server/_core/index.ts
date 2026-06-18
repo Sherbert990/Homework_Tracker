@@ -9,8 +9,15 @@ import { serveStatic, setupVite } from "./vite";
 import { getDb, logActivity } from "../db";
 import { reminderSettings } from "../../drizzle/schema";
 import { sendEmailReminder, sendSmsReminder } from "../reminderSender";
-import { registerOneDriveRoutes } from "../oneDriveSync";
 import { registerCronJobs } from "../cron";
+import { runDailyBackup, hasBackupConfig } from "../backup";
+
+/** Guards the internal backup trigger with the shared BACKUP_CRON_SECRET. */
+function isBackupCronAuthorized(req: express.Request): boolean {
+  const secret = process.env.BACKUP_CRON_SECRET;
+  if (!secret) return false;
+  return req.headers["x-backup-cron-secret"] === secret || req.headers.authorization === `Bearer ${secret}`;
+}
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -36,7 +43,6 @@ async function startServer() {
   const server = createServer(app);
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
-  registerOneDriveRoutes(app);
 
   // tRPC API
   app.use(
@@ -147,28 +153,26 @@ async function startServer() {
   });
 
   /**
-   * OneDrive sync endpoint — exports all homework data to a OneDrive Excel file.
-   * Uses Microsoft Graph API with the sharing URL provided by the user.
-   * For now, returns a helpful message explaining the authorization flow needed.
+   * Internal backup trigger — runs the full OneDrive backup (DB dump + Excel).
+   * Guarded by the BACKUP_CRON_SECRET header so it can be called by an external
+   * scheduler if ever needed. The Settings page uses the tRPC backup.runNow route.
    */
-  app.post("/api/onedrive/sync", async (req, res) => {
+  app.post("/api/internal/run-backup", async (req, res) => {
+    if (!isBackupCronAuthorized(req)) {
+      res.status(401).json({ ok: false, error: "Unauthorized" });
+      return;
+    }
+    if (!hasBackupConfig()) {
+      res.status(503).json({ ok: false, error: "OneDrive backup is not configured" });
+      return;
+    }
     try {
-      const url: string = req.body?.url ?? "";
-      if (!url) {
-        res.status(400).json({ success: false, error: "No OneDrive URL provided" });
-        return;
-      }
-      // OneDrive sync via Microsoft Graph API requires OAuth authorization.
-      // The user must authorize the app to access their OneDrive.
-      // For now, we return a helpful message.
-      res.json({
-        success: false,
-        error: "OneDrive sync requires Microsoft OAuth authorization. Please use the Export to Excel button on the Dashboard or History page to download the file, then upload it to OneDrive manually. Full automatic sync will be available after Microsoft OAuth setup.",
-        exportHint: "Use the 📥 Export to Excel button on the Dashboard page to download your data.",
-      });
-    } catch (err) {
-      console.error("[OneDrive Sync] Error:", err);
-      res.status(500).json({ success: false, error: String(err) });
+      const result = await runDailyBackup("internal");
+      res.status(result.status === "success" ? 200 : 500).json(result);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      const status = /already running/i.test(message) ? 409 : 500;
+      res.status(status).json({ ok: false, error: message });
     }
   });
 
