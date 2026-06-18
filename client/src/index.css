@@ -1,0 +1,307 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* 
+ * CHARLOTTE'S HW TRACKER — Periwinkle Dream Theme
+ * Design: Kawaii Stationery / Soft Periwinkle Journaling
+ * Fonts: Nunito (headings), Quicksand (body), Pacifico (brand)
+ * Colors: Periwinkle blue, soft lavender, mint green, warm white
+ */
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 8px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Custom periwinkle palette */
+  --color-periwinkle: #8b83c5;
+  --color-periwinkle-light: #b8b3e0;
+  --color-periwinkle-dark: #5a5490;
+  --color-lavender: #c4bfee;
+  --color-mint: #B5EAD7;
+  --color-gold: #F5C842;
+  --color-warm-brown: #3d3580;
+}
+
+:root {
+  --radius: 1rem;
+  --background: oklch(0.97 0.015 270);
+  --foreground: oklch(0.22 0.05 270);
+  --card: oklch(1 0 0 / 0.82);
+  --card-foreground: oklch(0.22 0.05 270);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.22 0.05 270);
+  --primary: oklch(0.58 0.12 270);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.88 0.06 270);
+  --secondary-foreground: oklch(0.35 0.08 270);
+  --muted: oklch(0.94 0.02 270);
+  --muted-foreground: oklch(0.55 0.05 270);
+  --accent: oklch(0.82 0.1 160);
+  --accent-foreground: oklch(0.28 0.08 160);
+  --destructive: oklch(0.65 0.22 25);
+  --destructive-foreground: oklch(1 0 0);
+  --border: oklch(0.85 0.05 270 / 0.6);
+  --input: oklch(0.94 0.02 270);
+  --ring: oklch(0.58 0.12 270 / 0.4);
+  --chart-1: oklch(0.58 0.12 270);
+  --chart-2: oklch(0.72 0.10 290);
+  --chart-3: oklch(0.78 0.12 160);
+  --chart-4: oklch(0.80 0.14 60);
+  --chart-5: oklch(0.72 0.15 200);
+  --sidebar: oklch(0.96 0.02 270);
+  --sidebar-foreground: oklch(0.22 0.05 270);
+  --sidebar-primary: oklch(0.58 0.12 270);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.90 0.04 270);
+  --sidebar-accent-foreground: oklch(0.35 0.08 270);
+  --sidebar-border: oklch(0.85 0.05 270 / 0.5);
+  --sidebar-ring: oklch(0.58 0.12 270 / 0.4);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Quicksand', sans-serif;
+    background-image: url('/manus-storage/hero_bg_periwinkle_67b51a82.png');
+    background-size: 700px auto;
+    background-repeat: repeat;
+    background-attachment: fixed;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+  }
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  [type="button"]:not(:disabled),
+  [type="submit"]:not(:disabled),
+  [type="reset"]:not(:disabled),
+  a[href],
+  select:not(:disabled),
+  input[type="checkbox"]:not(:disabled),
+  input[type="radio"]:not(:disabled) {
+    @apply cursor-pointer;
+  }
+}
+
+@layer components {
+  .container {
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .flex {
+    min-height: 0;
+    min-width: 0;
+  }
+
+  @media (min-width: 640px) {
+    .container {
+      padding-left: 1.5rem;
+      padding-right: 1.5rem;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .container {
+      padding-left: 2rem;
+      padding-right: 2rem;
+      max-width: 1280px;
+    }
+  }
+
+  /* Periwinkle glass card */
+  .glass-card {
+    background: rgba(255, 255, 255, 0.82);
+    backdrop-filter: blur(12px);
+    border: 1.5px solid rgba(139, 131, 197, 0.25);
+    border-radius: 1.25rem;
+    box-shadow: 0 4px 24px rgba(139, 131, 197, 0.14), 0 1px 4px rgba(180, 175, 230, 0.10);
+  }
+
+  /* Periwinkle primary button */
+  .btn-periwinkle {
+    background: linear-gradient(135deg, #8b83c5 0%, #a89fd4 100%);
+    color: white;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    border-radius: 2rem;
+    padding: 0.6rem 1.6rem;
+    border: none;
+    box-shadow: 0 4px 12px rgba(139, 131, 197, 0.4);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .btn-periwinkle:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(139, 131, 197, 0.5);
+  }
+  .btn-periwinkle:active {
+    transform: translateY(0);
+  }
+
+  /* Mint button (secondary) */
+  .btn-mint {
+    background: linear-gradient(135deg, #B5EAD7 0%, #8EDFC0 100%);
+    color: #2D6A4F;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    border-radius: 2rem;
+    padding: 0.6rem 1.6rem;
+    border: none;
+    box-shadow: 0 4px 12px rgba(181, 234, 215, 0.4);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .btn-mint:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(181, 234, 215, 0.5);
+  }
+
+  /* Legacy pastel button alias */
+  .btn-pastel {
+    background: linear-gradient(135deg, #8b83c5 0%, #a89fd4 100%);
+    color: white;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    border-radius: 2rem;
+    padding: 0.6rem 1.6rem;
+    border: none;
+    box-shadow: 0 4px 12px rgba(139, 131, 197, 0.4);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .btn-pastel:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(139, 131, 197, 0.5);
+  }
+
+  /* Task card */
+  .task-card {
+    background: rgba(255, 255, 255, 0.85);
+    border-radius: 1rem;
+    border: 1.5px solid rgba(139, 131, 197, 0.2);
+    box-shadow: 0 2px 12px rgba(139, 131, 197, 0.10);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .task-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(139, 131, 197, 0.18);
+  }
+  .task-card.completed {
+    background: linear-gradient(135deg, rgba(181, 234, 215, 0.3) 0%, rgba(255, 255, 255, 0.85) 100%);
+    border-color: rgba(181, 234, 215, 0.5);
+  }
+
+  /* Paw divider */
+  .paw-divider {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #8b83c5;
+    font-size: 1.2rem;
+    margin: 0.5rem 0;
+  }
+  .paw-divider::before,
+  .paw-divider::after {
+    content: '';
+    flex: 1;
+    height: 1.5px;
+    background: linear-gradient(90deg, transparent, #8b83c5, transparent);
+  }
+
+  /* Streak day */
+  .streak-day {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    font-family: 'Nunito', sans-serif;
+  }
+  .streak-day.done {
+    background: linear-gradient(135deg, #8b83c5, #a89fd4);
+    color: white;
+    box-shadow: 0 2px 8px rgba(139, 131, 197, 0.4);
+  }
+  .streak-day.empty {
+    background: rgba(255, 255, 255, 0.6);
+    color: #aaa;
+    border: 1.5px dashed #c4bfee;
+  }
+  .streak-day.today {
+    background: linear-gradient(135deg, #B5EAD7, #8EDFC0);
+    color: #2D6A4F;
+    box-shadow: 0 2px 8px rgba(181, 234, 215, 0.5);
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: rgba(139, 131, 197, 0.08);
+    border-radius: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(139, 131, 197, 0.4);
+    border-radius: 10px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(139, 131, 197, 0.7);
+  }
+
+  /* Brand font */
+  .font-brand {
+    font-family: 'Pacifico', cursive;
+  }
+  .font-display {
+    font-family: 'Nunito', sans-serif;
+  }
+  .font-body {
+    font-family: 'Quicksand', sans-serif;
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "name": "Charlotte's HW Tracker",
+  "short_name": "HW Tracker",
+  "description": "Track daily homework, earn rewards, and see long-term progress — Charlotte's personal study companion.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#7a82c8",
+  "theme_color": "#7a82c8",
+  "lang": "en",
+  "categories": ["education", "productivity"],
+  "icons": [
+    {
+      "src": "/manus-storage/favicon-16_2dfea6c3.png",
+      "sizes": "16x16",
+      "type": "image/png"
+    },
+    {
+      "src": "/manus-storage/favicon-32_f812bc9d.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "/manus-storage/icon-192_af90b90f.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/manus-storage/icon-512_61b3fa63.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/manus-storage/icon-512-maskable_db9a8ffb.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Log Today",
+      "short_name": "Log",
+      "description": "Add today's homework progress",
+      "url": "/log",
+      "icons": [{ "src": "/manus-storage/icon-192_af90b90f.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Dashboard",
+      "short_name": "Stats",
+      "description": "View long-term progress charts",
+      "url": "/dashboard",
+      "icons": [{ "src": "/manus-storage/icon-192_af90b90f.png", "sizes": "192x192" }]
+    }
+  ]
+}
