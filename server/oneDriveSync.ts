@@ -33,7 +33,7 @@ function getRedirectUri(req: Request): string {
   }
   // Fall back to the published domain from VITE_APP_ID-derived domain or forwarded host
   const proto = (req.headers["x-forwarded-proto"] as string) ?? req.protocol ?? "https";
-  // Prefer x-forwarded-host (set by Manus gateway) over raw host
+  // Prefer x-forwarded-host (set by the hosting proxy, e.g. Railway) over raw host
   const host = (req.headers["x-forwarded-host"] as string) ?? (req.headers.host as string) ?? "";
   // Strip port if present (deployed sites don't use ports in URLs)
   const cleanHost = host.split(":")[0];
@@ -448,8 +448,7 @@ export function registerOneDriveRoutes(app: Express) {
   });
 
   /**
-   * Scheduled sync endpoint — called by the Manus cron scheduler.
-   * Lives under /api/scheduled/ so the platform-injected session cookie is allowed.
+   * Scheduled sync endpoint — invoked by the server-side node-cron job.
    * Reuses the same sync logic as /api/onedrive/sync but needs no body — it reads
    * the saved sharing URL from the database automatically.
    */

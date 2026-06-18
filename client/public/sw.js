@@ -69,8 +69,7 @@ self.addEventListener('fetch', (event) => {
 
   // Static assets (JS, CSS, images, fonts): cache-first
   if (
-    url.pathname.match(/\.(js|css|png|jpg|jpeg|gif|svg|woff|woff2|ttf|ico)$/) ||
-    url.pathname.startsWith('/manus-storage/')
+    url.pathname.match(/\.(js|css|png|jpg|jpeg|gif|svg|woff|woff2|ttf|ico)$/)
   ) {
     event.respondWith(cacheFirst(request, STATIC_CACHE));
     return;
@@ -141,8 +140,8 @@ self.addEventListener('push', (event) => {
   event.waitUntil(
     self.registration.showNotification(data.title || "Charlotte's HW Tracker", {
       body: data.body || "Don't forget to log today's homework! 🐱",
-      icon: '/manus-storage/icon-192_af90b90f.png',
-      badge: '/manus-storage/favicon-32_f812bc9d.png',
+      icon: '/icon-192_af90b90f.png',
+      badge: '/favicon-32_f812bc9d.png',
       tag: 'hw-reminder',
       renotify: true,
       data: { url: data.url || '/log' },

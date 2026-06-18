@@ -42,7 +42,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <Link href="/">
             <div className="flex items-center gap-1.5 cursor-pointer group flex-shrink-0">
               <img
-                src="/manus-storage/cat_logo_golden_2ef59134.png"
+                src="/cat_logo_golden_2ef59134.png"
                 alt="Charlotte"
                 className="w-8 h-8 lg:w-10 lg:h-10 object-contain group-hover:scale-110 transition-transform"
               />

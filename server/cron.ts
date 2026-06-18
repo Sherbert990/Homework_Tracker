@@ -1,7 +1,7 @@
 /**
  * Server-side cron jobs for Charlotte's HW Tracker.
  *
- * Runs inside the Express process — no Manus agent credits consumed.
+ * Runs inside the Express process on a node-cron schedule.
  * All times are in America/Los_Angeles (PDT/PST).
  *
  * Schedule:
@@ -15,7 +15,9 @@ import { sendEmailReminder, sendSmsReminder } from "./reminderSender";
 import { getAllEntries, getSpendingHistory } from "./hwData";
 import { eq } from "drizzle-orm";
 
-const SITE_URL = "https://char-cat-tracker.manus.space";
+// Public base URL of the deployed app, used to build the "log today" link in
+// reminders. Set SITE_URL in the environment (e.g. the Railway public domain).
+const SITE_URL = process.env.SITE_URL || "http://localhost:3000";
 const GRAPH_BASE = "https://graph.microsoft.com/v1.0";
 const MS_AUTH_BASE = "https://login.microsoftonline.com/common/oauth2/v2.0";
 const SCOPES = "Files.ReadWrite offline_access User.Read";

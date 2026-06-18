@@ -92,7 +92,7 @@ export default function Home() {
       {/* Welcome Header */}
       <div className="flex items-center gap-4 mb-8">
         <img
-          src="/manus-storage/cat_studying_golden_9ed7c413.png"
+          src="/cat_studying_golden_9ed7c413.png"
           alt="Studying cat"
           className="w-24 h-20 object-contain hidden sm:block"
         />
@@ -215,7 +215,7 @@ export default function Home() {
             💰 Reward Jar
           </h2>
           <img
-            src="/manus-storage/cat_coin_jar_golden_b7d9ab63.png"
+            src="/cat_coin_jar_golden_b7d9ab63.png"
             alt="Cat coin jar"
             className="w-28 h-28 object-contain mx-auto mb-2"
           />

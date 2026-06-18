@@ -101,7 +101,7 @@
   body {
     @apply bg-background text-foreground;
     font-family: 'Quicksand', sans-serif;
-    background-image: url('/manus-storage/hero_bg_periwinkle_67b51a82.png');
+    background-image: url('/hero_bg_periwinkle_67b51a82.png');
     background-size: 700px auto;
     background-repeat: repeat;
     background-attachment: fixed;

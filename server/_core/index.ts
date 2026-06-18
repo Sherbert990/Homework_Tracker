@@ -1,9 +1,8 @@
+import "dotenv/config";
 import express from "express";
 import { createServer } from "http";
 import net from "net";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
-import { registerOAuthRoutes } from "./oauth";
-import { registerStorageProxy } from "./storageProxy";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
@@ -37,8 +36,6 @@ async function startServer() {
   const server = createServer(app);
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
-  registerStorageProxy(app);
-  registerOAuthRoutes(app);
   registerOneDriveRoutes(app);
 
   // tRPC API
@@ -76,10 +73,10 @@ async function startServer() {
   });
 
   /**
-   * Scheduled reminder endpoint — called by the Manus cron scheduler.
+   * Scheduled reminder endpoint — called by the cron scheduler.
    * Checks all users with enabled reminders and sends email/SMS if today
    * hasn't been logged. The scheduler passes the site URL in the body.
-   * Auth: uses the platform-injected session cookie (role = "user").
+   * Auth: uses the session cookie when available.
    */
   app.post("/api/scheduled/reminder", async (req, res) => {
     try {

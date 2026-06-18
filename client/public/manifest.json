@@ -11,29 +11,29 @@
   "categories": ["education", "productivity"],
   "icons": [
     {
-      "src": "/manus-storage/favicon-16_2dfea6c3.png",
+      "src": "/favicon-16_2dfea6c3.png",
       "sizes": "16x16",
       "type": "image/png"
     },
     {
-      "src": "/manus-storage/favicon-32_f812bc9d.png",
+      "src": "/favicon-32_f812bc9d.png",
       "sizes": "32x32",
       "type": "image/png"
     },
     {
-      "src": "/manus-storage/icon-192_af90b90f.png",
+      "src": "/icon-192_af90b90f.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/manus-storage/icon-512_61b3fa63.png",
+      "src": "/icon-512_61b3fa63.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/manus-storage/icon-512-maskable_db9a8ffb.png",
+      "src": "/icon-512-maskable_db9a8ffb.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
@@ -45,14 +45,14 @@
       "short_name": "Log",
       "description": "Add today's homework progress",
       "url": "/log",
-      "icons": [{ "src": "/manus-storage/icon-192_af90b90f.png", "sizes": "192x192" }]
+      "icons": [{ "src": "/icon-192_af90b90f.png", "sizes": "192x192" }]
     },
     {
       "name": "Dashboard",
       "short_name": "Stats",
       "description": "View long-term progress charts",
       "url": "/dashboard",
-      "icons": [{ "src": "/manus-storage/icon-192_af90b90f.png", "sizes": "192x192" }]
+      "icons": [{ "src": "/icon-192_af90b90f.png", "sizes": "192x192" }]
     }
   ]
 }

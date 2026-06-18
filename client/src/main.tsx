@@ -8,8 +8,8 @@ import "./index.css";
 
 const queryClient = new QueryClient();
 
-// Log API errors to console for debugging — but never redirect to Manus login.
-// Charlotte's HW Tracker is a personal app that does not require a Manus account.
+// Log API errors to console for debugging. Charlotte's HW Tracker is a personal
+// app with no login — surface errors instead of redirecting anywhere.
 queryClient.getQueryCache().subscribe(event => {
   if (event.type === "updated" && event.action.type === "error") {
     console.error("[API Query Error]", event.query.state.error);

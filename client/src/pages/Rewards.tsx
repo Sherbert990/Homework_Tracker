@@ -129,7 +129,7 @@ export default function Rewards() {
         >
           <div className="flex flex-col sm:flex-row items-center gap-6">
             <img
-              src="/manus-storage/cat_coin_jar_golden_b7d9ab63.png"
+              src="/cat_coin_jar_golden_b7d9ab63.png"
               alt="Reward jar"
               className="w-28 h-28 object-contain flex-shrink-0"
             />
